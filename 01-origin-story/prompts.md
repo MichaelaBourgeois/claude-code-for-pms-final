@@ -24,6 +24,12 @@ prompt library built from your own questions.
 
 ### 1.
 
+Priya and the EM say the 4.2 ticket spike is an August seasonal dip. Using the wiki, the handover note, and the rook-database tables, what evidence supports that and what evidence goes against it? Quote the source for each point and tell me what data is missing.
+
 ### 2.
 
+Two thirds of callout tickets say “my phone never goes off.” Based on everything in this folder, list the possible causes. For each one, tell me whether it is supported by a document, or only a guess. Quote the source, and tell me what I would need to check to confirm it.
+
 ### 3.
+
+Availability Confidence was committed for 4.2 but is not in the release notes. Could that be related to the ping problem?
