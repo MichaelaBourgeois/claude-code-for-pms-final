@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Rook Dispatch 4.2: what changed in pings</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#1f2933}
+h1{font-size:24px;margin:0 0 4px} h2{font-size:17px;margin:32px 0 6px} p{line-height:1.45;margin:6px 0}
+.sub{color:#52606d;font-size:13px} .note{color:#52606d;font-size:12px}
+.tiles{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+.tile{flex:1;min-width:180px;border:1px solid #d9e2ec;border-radius:8px;padding:12px}
+.tile b{font-size:26px;display:block} .bad{color:#b42318} .ok{color:#1d6fa5}
+.row{display:flex;align-items:center;font-size:12px;margin:3px 0}
+.row .n{width:130px} .row .bars{flex:1} .bar{height:7px;border-radius:3px;margin:1px 0}
+.b{background:#9fb3c8}.a{background:#b42318}.a2{background:#e0a39b}
+.row .v{width:90px;text-align:right;color:#52606d}
+.leg span{display:inline-block;width:10px;height:10px;margin:0 4px 0 12px;border-radius:2px}
+ul{margin:6px 0 6px 18px;padding:0;line-height:1.5} li{margin:3px 0}
+</style></head><body>
+<h1>Rook Dispatch 4.2: what changed in pings</h1>
+<p class="sub">Source: rook-database, pings / callouts / responders tables, 29 Jun to 6 Sep 2026. Cutoff: 12 Aug (4.2 release). Prepared 14 Oct 2026.</p>
+
+<div class="tiles">
+<div class="tile"><b>77% &rarr; 47%</b>pings taken, typical pre-4.2 week vs 12&ndash;16 Aug<br><span class="note">73% by week of 31 Aug</span></div>
+<div class="tile"><b class="bad">2% &rarr; 29%</b>pings missed, same weeks<br><span class="note">still 13% by 31 Aug</span></div>
+<div class="tile"><b>~20% &rarr; ~15&ndash;18%</b>pings turned down<br><span class="note">did not rise</span></div>
+<div class="tile"><b class="bad">5.5% &rarr; 11%</b>callouts with no recorded taker<br><span class="note">48 of 879 vs 49 of 440</span></div>
+</div>
+
+<h2>1. Pings taken vs missed, by week</h2>
+<p>Taken held at 75&ndash;78% for six weeks. It fell on 4.2's release and has only partly recovered. The drop is in missed pings, not in turned-down ones.</p>
+<svg id="line" viewBox="0 0 860 280" width="100%"></svg>
+<p class="note">The week of 10 Aug is split at 12 Aug: 10&ndash;11 Aug is before 4.2, 12&ndash;16 Aug is after.</p>
+
+<h2>2. It was not everyone equally: four responders collapsed</h2>
+<p>Farlight, The Undertow, Meteor Mite and Vesper went from ~49 pings a week combined to ~15, and 53&ndash;64% of the pings they still got were missed. Before 12 Aug they looked like everyone else.</p>
+<div class="leg"><span style="background:#9fb3c8"></span>missed before 12 Aug<span style="background:#b42318"></span>missed after, the four<span style="background:#e0a39b"></span>missed after, other 12</div>
+<div id="resp"></div>
+<p class="note">Counts: the four have only 11&ndash;17 pings each since 12 Aug, so individual rates are rough. Sorted by missed rate after 12 Aug.</p>
+
+<h2>3. What the data says, and what it doesn't</h2>
+<p><b>Supported by the data</b></p>
+<ul>
+<li>Missed pings rose for all 16 responders, from 0&ndash;5% to 10&ndash;18% for the twelve and 53&ndash;64% for the four.</li>
+<li>The four miss pings in their own home area too (40&ndash;67%), so distance from the callout does not explain them. Most others miss mainly on out-of-area pings.</li>
+<li>Four different areas and four different handlers. Meteor Mite and The Gale share a handler (Kip) and area (Eastgate); The Gale is mostly fine.</li>
+<li>Pings moved to other responders: ten gained volume.</li>
+<li>11% of callouts since 12 Aug have no recorded taker, vs 5.5% before.</li>
+</ul>
+<p><b>Only a guess, still to confirm</b></p>
+<ul>
+<li>The routing code treats a missed ping like a decline and penalizes it without decay, so misses push a responder down the order and they get fewer pings. This comes from reading the code. It is not tested.</li>
+<li>The 60s wait (cut from 90s) raised misses for everyone. The timestamps show the wait changed, but response times for taken pings are not in the database.</li>
+</ul>
+<p><b>Missing data</b></p>
+<ul>
+<li>Routing scores and travel times (engineering / Wen Li), prior-year Jul&ndash;Sep (to test the "August dip" claim), response times (Ravi), device information (no column exists).</li>
+<li>Whether the unfilled callouts actually went unfilled (Marcus).</li>
+</ul>
+
+<h2>4. What I'd ask for</h2>
+<ul>
+<li>Wen Li replays the stored scores and travel times for the four, from 12 Aug.</li>
+<li>Marcus confirms whether any of the 49 no-taker callouts went unfilled, and answers the 14 Aug question about whether the proximity change was meant to apply equally.</li>
+<li>Ravi supplies time-to-accept before and after 12 Aug.</li>
+<li>Helen and I decide which options to bring forward once we have those answers. I am not proposing a revert yet.</li>
+</ul>
+
+<script>
+const wk=[["29 Jun",76.7,1.7],["6 Jul",77.1,2.4],["13 Jul",76.4,3.4],["20 Jul",75.0,2.8],["27 Jul",77.6,2.4],["3 Aug",77.9,1.2],["10-11 Aug",72.5,2.0],["12-16 Aug",46.8,29.4],["17 Aug",65.8,17.7],["24 Aug",66.7,14.8],["31 Aug",72.7,12.7]];
+const W=860,H=280,L=40,R=20,T=16,B=40,x=i=>L+i*(W-L-R)/(wk.length-1),y=v=>T+(100-v)*(H-T-B)/100;
+let s='';for(let g=0;g<=100;g+=25){s+=`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="#e4e7eb"/><text x="${L-6}" y="${y(g)+4}" font-size="11" text-anchor="end" fill="#52606d">${g}%</text>`}
+s+=`<line x1="${x(6.5)}" x2="${x(6.5)}" y1="${T}" y2="${H-B}" stroke="#52606d" stroke-dasharray="4"/><text x="${x(6.5)+4}" y="${T+12}" font-size="11" fill="#52606d">4.2 ships, 12 Aug</text>`;
+[[1,'#1d6fa5','Taken'],[2,'#b42318','Missed']].forEach(([k,c,n])=>{
+ s+=`<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${wk.map((d,i)=>x(i)+','+y(d[k])).join(' ')}"/>`;
+ wk.forEach((d,i)=>{s+=`<circle cx="${x(i)}" cy="${y(d[k])}" r="3.5" fill="${c}"/>`;if(i==0||i>=6)s+=`<text x="${x(i)}" y="${y(d[k])-8}" font-size="11" text-anchor="middle" fill="${c}">${d[k]}%</text>`});
+ s+=`<text x="${W-R}" y="${y(wk[10][k])+(k==1?-24:22)}" font-size="12" text-anchor="end" fill="${c}" font-weight="bold">${n}</text>`;});
+wk.forEach((d,i)=>s+=`<text x="${x(i)}" y="${H-B+16}" font-size="11" text-anchor="middle" fill="#52606d">${d[0]}</text>`);
+document.getElementById('line').innerHTML=s;
+const r=[["The Undertow",1,64,1],["Farlight",4,64,1],["Meteor Mite",3,57,1],["Vesper",3,53,1],["Sgt. Bulwark",0,18],["Ironvale",2,18],["The Drift",3,18],["The Longcast",2,16],["Halfmoon",0,15],["Sgt. Falkirk",3,15],["Stormwrack",0,14],["Corporal Ashgrove",2,14],["The Gale",5,12],["Cindermark",2,12],["Nightwell",3,11],["Captain Vantage",3,10]];
+document.getElementById('resp').innerHTML=r.map(d=>`<div class="row"><div class="n">${d[0]}</div><div class="bars"><div class="bar b" style="width:${d[1]}%"></div><div class="bar ${d[3]?'a':'a2'}" style="width:${d[2]}%"></div></div><div class="v">${d[1]}% &rarr; ${d[2]}%</div></div>`).join('');
+</script>
+</body></html>
