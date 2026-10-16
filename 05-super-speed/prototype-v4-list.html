@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rook Dispatch prototype: a way back for a quiet responder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--main:#1d4ed8;--main-dark:#1e40af;--warn:#b45309;--warn-bg:#fff7ed;--taken:#15803d;--down:#7c3aed;--miss:#b91c1c;--ink:#1f2937;--soft:#6b7280;--line:#e5e7eb}
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f8f9fb;color:var(--ink);font-size:19px;line-height:1.5}
+  .label{background:#111827;color:#fff;font-size:14px;padding:8px 20px;display:flex;justify-content:space-between;align-items:center}
+  .label button{background:none;border:1px solid #6b7280;color:#fff;border-radius:6px;padding:2px 10px;font-size:13px;cursor:pointer}
+  .tabs{display:flex;gap:10px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--line)}
+  .tabs button{border:2px solid var(--line);padding:10px 20px;border-radius:10px;cursor:pointer;background:#fff;font-size:17px;color:#374151}
+  .tabs button.on{background:var(--main);border-color:var(--main);color:#fff}
+  .console{display:flex;min-height:640px}
+  nav{width:210px;background:#111827;color:#d1d5db;padding:20px 0;font-size:16px;flex-shrink:0}
+  nav .logo{color:#fff;font-weight:bold;padding:0 20px 20px;font-size:18px}
+  nav div{padding:12px 20px}
+  nav div.cur{background:#1f2937;color:#fff;border-left:4px solid #60a5fa}
+  nav div.dim{color:#6b7280}
+  .body{flex:1;padding:32px 36px;min-width:0}
+  h1{font-size:30px;line-height:1.25;margin:0 0 8px}
+  h2{font-size:22px;margin:0 0 10px}
+  .soft{color:var(--soft);font-size:15px}
+  .card{background:#fff;border-radius:14px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .card.quiet{border-left:8px solid var(--warn)}
+  .card.ok{border-left:8px solid var(--taken)}
+  .banner{background:#ecfdf5;border-left:8px solid var(--taken);border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:19px}
+  .flag{display:inline-block;color:#fff;font-size:13px;padding:2px 10px;border-radius:14px;white-space:nowrap}
+  .flag.q{background:var(--warn)}.flag.n{background:#6b7280}.flag.d{background:var(--taken)}
+  .ex{display:inline-block;background:#f3f4f6;color:var(--soft);font-size:12px;padding:1px 8px;border-radius:10px;vertical-align:middle}
+  .meta{color:var(--soft);font-size:16px;margin:0 0 12px}
+  .btn{display:block;width:100%;padding:18px;border-radius:12px;border:2px solid var(--main);background:var(--main);color:#fff;font-size:20px;font-weight:bold;cursor:pointer;margin-top:12px}
+  .btn:hover{background:var(--main-dark)}
+  .btn:disabled{background:#e5e7eb;border-color:#e5e7eb;color:#9ca3af;cursor:default}
+  .btn.sm{display:inline-block;width:auto;padding:6px 12px;font-size:14px;margin:0;border-radius:8px}
+  .pick{display:block;width:100%;text-align:left;padding:20px 24px;margin-bottom:14px;border-radius:12px;border:2px solid var(--line);background:#fff;font-size:22px;cursor:pointer}
+  .pick:hover{border-color:var(--main)}
+  .pick small{display:block;color:var(--soft);font-size:16px}
+  table{width:100%;border-collapse:collapse;margin-top:6px}
+  th{text-align:left;font-size:12px;color:var(--soft);font-weight:normal;padding:6px}
+  td{padding:10px 6px;border-top:1px solid var(--line);font-size:15px;vertical-align:middle}
+  td.n,th.n{text-align:right;white-space:nowrap}
+  tr.after td{background:#fffdf5}
+  tr.qrow td{background:var(--warn-bg)}
+  tr.qrow{box-shadow:inset 4px 0 0 var(--warn)}
+  tr.link{cursor:pointer}tr.link:hover td{background:#f3f4f6}
+  tr.qrow.link:hover td{background:#ffedd5}
+  .scroll{overflow-x:auto}
+  .rank{font-weight:bold;font-size:18px;color:var(--soft)}
+  .tag{display:inline-block;padding:2px 10px;border-radius:14px;font-size:14px;color:#fff;white-space:nowrap}
+  .t-taken{background:var(--taken)}.t-down{background:var(--down)}.t-missed{background:var(--miss)}
+  .t-no{background:#f3f4f6;color:var(--soft);text-decoration:line-through}
+  .c-miss{color:var(--miss);font-weight:bold}.c-down{color:var(--down);font-weight:bold}.c-taken{color:var(--taken);font-weight:bold}
+  .key{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:#374151;margin:4px 0 8px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+  .count{font-size:19px;margin:12px 0 0}.count b{font-size:26px}
+  .who{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+  .who button,.back{background:#fff;border:2px solid var(--line);border-radius:8px;padding:8px 14px;font-size:15px;cursor:pointer;color:var(--ink)}
+  .toggle{display:inline-flex;margin:8px 0 14px}
+  .toggle button{padding:9px 18px;border:2px solid var(--main);background:#fff;color:var(--main);font-size:16px;cursor:pointer}
+  .toggle button:first-child{border-radius:10px 0 0 10px}
+  .toggle button:last-child{border-radius:0 10px 10px 0;margin-left:-2px}
+  .toggle button.on{background:var(--main);color:#fff}
+  .stage{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px}
+  .phone{width:340px;height:640px;border:10px solid #111827;border-radius:38px;background:#fff;overflow-y:auto}
+  .phone .in{padding:26px 18px}
+  .phone h1{font-size:24px;margin:0}
+  .phone h2{font-size:18px;margin:18px 0 6px}
+  .phone .card{box-shadow:none;border:1px solid var(--line);padding:14px;margin-bottom:14px}
+  .phone td{font-size:13px;padding:8px 3px}
+  .phone .tag{font-size:12px;padding:1px 8px}
+  .phone p{font-size:16px;margin:8px 0}
+  .phone .btn{font-size:17px;padding:14px}
+  .seg{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+  .seg button{padding:8px 16px;border-radius:20px;border:2px solid var(--line);background:#fff;font-size:16px;cursor:pointer}
+  .seg button.on{border-color:var(--main);color:var(--main);font-weight:bold}
+  @media (max-width:760px){nav{display:none}.body{padding:20px 14px}}
+  .dash{overflow:auto;max-height:calc(100vh - 330px);min-height:320px;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .dash table{margin:0;min-width:1280px}
+  .dash thead th{position:sticky;top:0;background:#f9fafb;z-index:2;padding:8px 6px;border-bottom:2px solid var(--line);font-size:12px;color:#374151}
+  .dash td{padding:6px;font-size:13px;vertical-align:middle}
+  .dash tr.row td{border-top:1px solid var(--line)}
+  .dash tr.qrow td{background:var(--warn-bg)}
+  .dash tr.qrow td:first-child{box-shadow:inset 5px 0 0 var(--warn)}
+  .dash tr.sub td{background:#fff;border-top:0;padding:8px 12px}
+  .dash .nm b{font-size:14px}
+  .sum{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+  .sum div{flex:1;min-width:130px;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:13px;color:var(--soft)}
+  .sum b{display:block;font-size:24px;color:var(--ink)}
+  .sum b.w{color:var(--warn)}
+  .dd{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:3px;cursor:help;vertical-align:middle}
+  .dd.taken{background:var(--taken)}.dd.down{background:var(--down)}.dd.missed{background:var(--miss)}
+  .dd.legit{background:#fff;border:2px dashed #6b7280}
+  .acts .btn{display:block;width:100%;margin:0 0 4px;padding:6px 8px;font-size:12px;border-radius:8px;white-space:nowrap}
+  .acts .btn.alt{background:#fff;color:var(--main)}
+  .panel{background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  .panel .btn{display:inline-block;width:auto;margin:3px 8px 3px 0;padding:5px 10px;font-size:12px}  .list{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}
+  .list table{margin:0}
+  .list th{padding:12px 14px;font-size:13px;background:#f9fafb;border-bottom:1px solid var(--line)}
+  .list td{padding:16px 14px;font-size:17px;border-top:1px solid var(--line)}
+  .list tr.item{cursor:pointer}
+  .list tr.item:hover td{background:#f3f4f6}
+  .list tr.item.q td:first-child{box-shadow:inset 6px 0 0 var(--warn)}
+  .list tr.item.q td{background:var(--warn-bg)}
+  .list tr.item.q:hover td{background:#ffedd5}
+  .list .go{color:var(--main);font-size:22px;text-align:right}
+  .line{font-size:17px;color:#374151;margin:6px 0 14px}</style>
+</head>
+<body>
+<div class="label"><span>Prototype. Example data where marked.</span><button onclick="location.reload()">Reset demo</button></div>
+<div class="tabs">
+  <button id="t1" onclick="setTab(1)">Handler console</button>
+  <button id="t2" onclick="setTab(2)">Responder phone</button>
+</div>
+<div id="root"></div>
+
+<script>
+/* Real data: rook-database pings, callouts, responders, support_tickets; 29 Jun to 7 Sep 2026. 4.2 cut-off: 12 Aug.
+   Row format: name, area, handler (as in the responders table), before [pings,taken,turned down,missed], from 12 Aug [same],
+   date of last taken ping, weeks [label,pings,taken,turned down,missed], last 8 pings [callout,date,time,callout area,outcome]. */
+var BEFORE_WEEKS=44/7, AFTER_WEEKS=27/7;
+var HANDLERS={"Desmond Okafor":["The Undertow"],"Pruitt":["Farlight"],"Kip":["Meteor Mite","The Gale"]};
+var RAW=[
+["Captain Vantage","Hillcrest","Mr. Ambrose",[76,56,18,2],[59,42,11,6],"6 Sep",[["29 Jun",12,10,2,0],["6 Jul",13,10,2,1],["13 Jul",12,8,4,0],["20 Jul",11,7,3,1],["27 Jul",12,9,3,0],["3 Aug",12,9,3,0],["10 Aug",4,3,1,0],["12 Aug",9,5,3,1],["17 Aug",15,11,2,2],["24 Aug",17,13,3,1],["31 Aug",18,13,3,2]],[[41419,"6 Sep","20:52","Hillcrest","taken"],[41412,"6 Sep","09:44","Old Town","taken"],[41411,"6 Sep","08:08","Old Town","missed"],[41410,"6 Sep","07:55","Old Town","turned down"],[41405,"5 Sep","19:54","Hillcrest","taken"],[41403,"5 Sep","18:30","Old Town","taken"],[41391,"5 Sep","13:12","Hillcrest","taken"],[41369,"4 Sep","15:16","Midtown","turned down"]]],
+["Cindermark","Mill District","Farid Haddad",[57,45,11,1],[42,29,8,5],"6 Sep",[["29 Jun",9,7,2,0],["6 Jul",9,8,1,0],["13 Jul",8,6,1,1],["20 Jul",10,7,3,0],["27 Jul",9,7,2,0],["3 Aug",9,8,1,0],["10 Aug",3,2,1,0],["12 Aug",7,4,2,1],["17 Aug",11,8,2,1],["24 Aug",12,8,2,2],["31 Aug",12,9,2,1]],[[41417,"6 Sep","17:45","Mill District","taken"],[41416,"6 Sep","15:21","Uptown","missed"],[41384,"5 Sep","08:16","Mill District","taken"],[41365,"4 Sep","12:18","Uptown","taken"],[41354,"3 Sep","21:58","Mill District","taken"],[41345,"3 Sep","13:53","Uptown","taken"],[41342,"3 Sep","12:43","Uptown","taken"],[41331,"2 Sep","15:53","Mill District","taken"]]],
+["Corporal Ashgrove","Northfield","Yusuf Demir",[63,49,13,1],[29,19,6,4],"5 Sep",[["29 Jun",10,8,2,0],["6 Jul",11,9,2,0],["13 Jul",10,7,2,1],["20 Jul",9,7,2,0],["27 Jul",10,8,2,0],["3 Aug",10,8,2,0],["10 Aug",3,2,1,0],["12 Aug",7,4,2,1],["17 Aug",8,5,2,1],["24 Aug",7,5,1,1],["31 Aug",7,5,1,1]],[[41400,"5 Sep","17:28","Northfield","taken"],[41377,"4 Sep","19:07","Northfield","taken"],[41339,"3 Sep","10:44","Northfield","taken"],[41322,"1 Sep","21:39","Northfield","taken"],[41320,"1 Sep","20:06","Northfield","taken"],[41314,"1 Sep","14:34","Westbury","turned down"],[41307,"1 Sep","09:15","Westbury","missed"],[41271,"30 Aug","09:36","Northfield","taken"]]],
+["Farlight","Uptown","Pruitt",[75,55,17,3],[11,2,2,7],"14 Aug",[["29 Jun",12,9,3,0],["6 Jul",12,9,3,0],["13 Jul",11,8,2,1],["20 Jul",12,9,2,1],["27 Jul",13,10,3,0],["3 Aug",12,8,3,1],["10 Aug",3,2,1,0],["12 Aug",7,2,1,4],["17 Aug",3,0,1,2],["24 Aug",1,0,0,1],["31 Aug",0,0,0,0]],[[41245,"28 Aug","19:28","Mill District","missed"],[41160,"23 Aug","13:51","Mill District","missed"],[41142,"22 Aug","11:13","Uptown","turned down"],[41092,"19 Aug","13:28","Uptown","missed"],[41021,"14 Aug","21:22","Uptown","taken"],[41016,"14 Aug","16:32","Uptown","missed"],[40998,"13 Aug","14:51","Kingsbridge","missed"],[40993,"13 Aug","09:45","Uptown","missed"]]],
+["Halfmoon","Westbury","Simone Fischer",[69,50,19,0],[33,21,7,5],"5 Sep",[["29 Jun",11,8,3,0],["6 Jul",10,7,3,0],["13 Jul",11,8,3,0],["20 Jul",12,8,4,0],["27 Jul",11,9,2,0],["3 Aug",11,8,3,0],["10 Aug",3,2,1,0],["12 Aug",8,4,2,2],["17 Aug",9,5,2,2],["24 Aug",8,5,2,1],["31 Aug",8,7,1,0]],[[41398,"5 Sep","16:58","Westbury","taken"],[41375,"4 Sep","18:44","Westbury","taken"],[41363,"4 Sep","11:45","Westbury","taken"],[41351,"3 Sep","20:06","Westbury","taken"],[41346,"3 Sep","14:35","Lakeshore","turned down"],[41335,"2 Sep","21:04","Westbury","taken"],[41314,"1 Sep","14:35","Westbury","taken"],[41307,"1 Sep","09:16","Westbury","taken"]]],
+["Ironvale","Riverside","Teresa Alvarez",[51,39,11,1],[39,26,6,7],"5 Sep",[["29 Jun",8,6,2,0],["6 Jul",8,5,3,0],["13 Jul",9,8,1,0],["20 Jul",8,6,2,0],["27 Jul",7,5,1,1],["3 Aug",8,7,1,0],["10 Aug",3,2,1,0],["12 Aug",6,3,2,1],["17 Aug",10,6,2,2],["24 Aug",11,8,1,2],["31 Aug",12,9,1,2]],[[41404,"5 Sep","18:49","Harborside","turned down"],[41395,"5 Sep","15:20","Harborside","taken"],[41382,"4 Sep","22:44","Riverside","missed"],[41376,"4 Sep","18:48","Riverside","missed"],[41373,"4 Sep","17:05","Harborside","taken"],[41370,"4 Sep","15:28","Riverside","taken"],[41367,"4 Sep","14:13","Riverside","taken"],[41344,"3 Sep","13:41","Riverside","taken"]]],
+["Meteor Mite","Eastgate","Kip",[70,48,20,2],[14,3,3,8],"19 Aug",[["29 Jun",11,7,4,0],["6 Jul",12,9,3,0],["13 Jul",10,6,4,0],["20 Jul",11,7,3,1],["27 Jul",12,9,2,1],["3 Aug",11,8,3,0],["10 Aug",3,2,1,0],["12 Aug",7,2,1,4],["17 Aug",4,1,1,2],["24 Aug",2,0,1,1],["31 Aug",1,0,0,1]],[[41393,"5 Sep","15:06","Midtown","missed"],[41254,"29 Aug","09:15","Eastgate","missed"],[41232,"27 Aug","20:03","Midtown","turned down"],[41152,"22 Aug","20:53","Midtown","missed"],[41114,"20 Aug","16:41","Eastgate","missed"],[41097,"19 Aug","17:30","Eastgate","taken"],[41070,"18 Aug","07:37","Eastgate","turned down"],[41040,"16 Aug","11:16","Eastgate","missed"]]],
+["Nightwell","Midtown","Marjorie Sung",[95,72,20,3],[70,47,15,8],"6 Sep",[["29 Jun",15,11,3,1],["6 Jul",14,10,4,0],["13 Jul",15,12,2,1],["20 Jul",16,12,3,1],["27 Jul",15,11,4,0],["3 Aug",15,12,3,0],["10 Aug",5,4,1,0],["12 Aug",11,5,4,2],["17 Aug",18,14,2,2],["24 Aug",20,13,5,2],["31 Aug",21,15,4,2]],[[41412,"6 Sep","09:43","Old Town","missed"],[41411,"6 Sep","08:09","Old Town","taken"],[41410,"6 Sep","07:56","Old Town","taken"],[41393,"5 Sep","15:07","Midtown","taken"],[41386,"5 Sep","09:41","Midtown","taken"],[41383,"5 Sep","07:23","Old Town","taken"],[41374,"4 Sep","18:13","Midtown","taken"],[41369,"4 Sep","15:16","Midtown","taken"]]],
+["Sgt. Bulwark","Foundry Row","Halloran",[57,43,14,0],[39,26,6,7],"6 Sep",[["29 Jun",9,7,2,0],["6 Jul",9,7,2,0],["13 Jul",10,8,2,0],["20 Jul",9,7,2,0],["27 Jul",8,5,3,0],["3 Aug",9,7,2,0],["10 Aug",3,2,1,0],["12 Aug",7,3,2,2],["17 Aug",10,8,1,1],["24 Aug",11,7,2,2],["31 Aug",11,8,1,2]],[[41416,"6 Sep","15:23","Uptown","taken"],[41402,"5 Sep","18:20","Foundry Row","taken"],[41399,"5 Sep","17:12","Foundry Row","taken"],[41381,"4 Sep","21:48","Foundry Row","taken"],[41380,"4 Sep","21:47","Eastgate","missed"],[41356,"3 Sep","22:37","Uptown","taken"],[41355,"3 Sep","22:25","Foundry Row","taken"],[41319,"1 Sep","20:01","Foundry Row","taken"]]],
+["Sgt. Falkirk","Kingsbridge","Owen Bramwell",[63,50,11,2],[52,36,8,8],"5 Sep",[["29 Jun",10,9,0,1],["6 Jul",10,8,1,1],["13 Jul",11,8,3,0],["20 Jul",10,8,2,0],["27 Jul",9,7,2,0],["3 Aug",10,8,2,0],["10 Aug",3,2,1,0],["12 Aug",8,5,1,2],["17 Aug",13,9,2,2],["24 Aug",15,11,2,2],["31 Aug",16,11,3,2]],[[41416,"6 Sep","15:22","Uptown","missed"],[41409,"6 Sep","03:26","Kingsbridge","turned down"],[41408,"5 Sep","21:56","Kingsbridge","taken"],[41378,"4 Sep","19:27","Uptown","taken"],[41342,"3 Sep","12:43","Uptown","turned down"],[41338,"3 Sep","10:15","Kingsbridge","taken"],[41333,"2 Sep","18:22","Kingsbridge","missed"],[41328,"2 Sep","14:59","Kingsbridge","taken"]]],
+["Stormwrack","Southport","Renata Kovač",[82,65,17,0],[63,45,9,9],"6 Sep",[["29 Jun",13,10,3,0],["6 Jul",13,11,2,0],["13 Jul",12,9,3,0],["20 Jul",14,12,2,0],["27 Jul",13,10,3,0],["3 Aug",13,10,3,0],["10 Aug",4,3,1,0],["12 Aug",10,5,2,3],["17 Aug",16,12,2,2],["24 Aug",18,13,3,2],["31 Aug",19,15,2,2]],[[41418,"6 Sep","20:09","Southport","missed"],[41415,"6 Sep","13:36","Greenway","turned down"],[41413,"6 Sep","10:45","Southport","taken"],[41407,"5 Sep","21:43","Southport","taken"],[41404,"5 Sep","18:49","Harborside","taken"],[41394,"5 Sep","15:18","Harborside","taken"],[41388,"5 Sep","11:12","Southport","taken"],[41387,"5 Sep","10:52","Harborside","taken"]]],
+["The Drift","Greenway","Beatrice Calloway",[39,33,5,1],[28,18,5,5],"6 Sep",[["29 Jun",6,5,1,0],["6 Jul",6,5,1,0],["13 Jul",7,6,1,0],["20 Jul",6,5,1,0],["27 Jul",6,5,1,0],["3 Aug",6,5,0,1],["10 Aug",2,2,0,0],["12 Aug",5,2,1,2],["17 Aug",7,5,1,1],["24 Aug",8,6,1,1],["31 Aug",8,5,2,1]],[[41415,"6 Sep","13:37","Greenway","taken"],[41413,"6 Sep","10:45","Southport","turned down"],[41353,"3 Sep","20:49","Harborside","turned down"],[41352,"3 Sep","20:10","Harborside","taken"],[41337,"3 Sep","09:27","Greenway","taken"],[41334,"2 Sep","20:32","Southport","missed"],[41316,"1 Sep","17:28","Greenway","taken"],[41312,"1 Sep","13:04","Greenway","taken"]]],
+["The Gale","Eastgate","Kip",[82,64,14,4],[69,48,13,8],"5 Sep",[["29 Jun",13,10,2,1],["6 Jul",12,9,3,0],["13 Jul",13,10,3,0],["20 Jul",14,11,2,1],["27 Jul",13,11,1,1],["3 Aug",13,10,3,0],["10 Aug",4,3,0,1],["12 Aug",11,6,3,2],["17 Aug",17,12,3,2],["24 Aug",20,14,4,2],["31 Aug",21,16,3,2]],[[41406,"5 Sep","19:57","Eastgate","taken"],[41402,"5 Sep","18:20","Foundry Row","turned down"],[41401,"5 Sep","17:57","Eastgate","taken"],[41397,"5 Sep","16:01","Eastgate","taken"],[41392,"5 Sep","13:13","Eastgate","taken"],[41389,"5 Sep","12:15","Eastgate","taken"],[41380,"4 Sep","21:48","Eastgate","taken"],[41372,"4 Sep","16:33","Eastgate","taken"]]],
+["The Longcast","Lakeshore","Graham Petrov",[45,34,10,1],[32,21,6,5],"6 Sep",[["29 Jun",7,5,2,0],["6 Jul",7,5,1,1],["13 Jul",8,7,1,0],["20 Jul",7,5,2,0],["27 Jul",7,5,2,0],["3 Aug",7,5,2,0],["10 Aug",2,2,0,0],["12 Aug",6,3,2,1],["17 Aug",8,6,1,1],["24 Aug",9,5,2,2],["31 Aug",9,7,1,1]],[[41414,"6 Sep","12:01","Lakeshore","taken"],[41412,"6 Sep","09:42","Old Town","turned down"],[41396,"5 Sep","15:23","Lakeshore","taken"],[41390,"5 Sep","13:04","Old Town","taken"],[41371,"4 Sep","15:35","Lakeshore","taken"],[41360,"4 Sep","09:34","Old Town","taken"],[41346,"3 Sep","14:36","Lakeshore","taken"],[41315,"1 Sep","17:03","Lakeshore","taken"]]],
+["The Undertow","Harborside","Desmond Okafor",[75,58,16,1],[14,3,2,9],"17 Aug",[["29 Jun",12,9,3,0],["6 Jul",11,9,2,0],["13 Jul",12,9,2,1],["20 Jul",13,10,3,0],["27 Jul",12,10,2,0],["3 Aug",12,9,3,0],["10 Aug",3,2,1,0],["12 Aug",8,2,1,5],["17 Aug",4,1,1,2],["24 Aug",1,0,0,1],["31 Aug",1,0,0,1]],[[41394,"5 Sep","15:17","Harborside","missed"],[41235,"27 Aug","23:18","Harborside","missed"],[41130,"21 Aug","16:45","Harborside","missed"],[41079,"18 Aug","16:18","Harborside","missed"],[41059,"17 Aug","19:07","Harborside","taken"],[41054,"17 Aug","14:10","Greenway","turned down"],[41041,"16 Aug","13:46","Greenway","turned down"],[41011,"14 Aug","10:22","Riverside","missed"]]],
+["Vesper","Old Town","Aunt Dot",[86,70,13,3],[17,5,3,9],"17 Aug",[["29 Jun",14,11,3,0],["6 Jul",13,10,2,1],["13 Jul",15,13,1,1],["20 Jul",14,11,3,0],["27 Jul",13,11,1,1],["3 Aug",14,12,2,0],["10 Aug",3,2,1,0],["12 Aug",9,4,1,4],["17 Aug",5,1,1,3],["24 Aug",2,0,1,1],["31 Aug",1,0,0,1]],[[41311,"1 Sep","11:42","Old Town","missed"],[41214,"26 Aug","18:09","Old Town","missed"],[41186,"24 Aug","21:40","Old Town","turned down"],[41165,"23 Aug","20:15","Lakeshore","missed"],[41155,"23 Aug","05:34","Midtown","turned down"],[41153,"23 Aug","00:10","Old Town","missed"],[41102,"19 Aug","18:42","Old Town","missed"],[41050,"17 Aug","08:55","Old Town","taken"]]]
+];
+var R={};
+RAW.forEach(function(r){
+  var w=r[6].map(function(x){return x.slice();});
+  w.forEach(function(x){if(x[0]==="10 Aug")x[0]="10 to 11 Aug";if(x[0]==="12 Aug")x[0]="12 to 16 Aug";});
+  if(w[w.length-1][0]!=="31 Aug")w.push(["31 Aug",0,0,0,0]);
+  R[r[0]]={name:r[0],area:r[1],handler:r[2],pre:r[3],post:r[4],lastTaken:r[5],weeks:w,pings:r[7],tickets:r[0]==="The Undertow"?11:0};
+});
+var NAMES=Object.keys(R);
+var S={};NAMES.forEach(function(n){S[n]={legit:{},fresh:false,asked:false};});
+var tab=1,who=null,open=null,scope="all",rpick="The Undertow";
+
+function perWk(n,after){return R[n][after?"post":"pre"][0]/(after?AFTER_WEEKS:BEFORE_WEEKS);}
+function rate(n,after){var a=R[n][after?"post":"pre"];return a[3]/a[0]*100;}
+function takenRate(n){var a=R[n].post;return a[1]/a[0]*100;}
+function last(n){return R[n].weeks[R[n].weeks.length-1][1];}
+function usual(n){return Math.round(perWk(n,false));}
+function isQuiet(n){return last(n)<perWk(n,false)/2;}
+function counted(n){var c=0;R[n].pings.forEach(function(p,i){if(p[4]==="missed"&&!S[n].legit[i])c++;});return c;}
+function qi(n){return '"'+n+'"';}
+function f1(x){return x.toFixed(1);}
+function pct(x){return x.toFixed(0)+'%';}
+function ex(t){return ' <span class="ex">'+(t||'Example only')+'</span>';}
+function tag(r){return r==="taken"?'<span class="tag t-taken">Taken</span>':r==="missed"?'<span class="tag t-missed">Missed</span>':'<span class="tag t-down">Turned down</span>';}
+function key(){return '<div class="key"><span><span class="dot" style="background:var(--taken)"></span>Taken: they said yes</span><span><span class="dot" style="background:var(--down)"></span>Turned down: they said no</span><span><span class="dot" style="background:var(--miss)"></span>Missed: ran out of time</span></div>';}
+function flag(n){return S[n].fresh?'<span class="flag d">Fresh start given</span>':isQuiet(n)?'<span class="flag q">Gone quiet</span>':'<span class="flag n">Normal</span>';}
+function pl(k){return k+' ping'+(k===1?'':'s');}
+
+/* ranking: taken rate since 12 Aug, high to low; ties broken by lower missed rate since 12 Aug */
+function ranked(list){
+  return list.slice().sort(function(a,b){
+    var d=takenRate(b)-takenRate(a);
+    if(Math.abs(d)>1e-9)return d;
+    return rate(a,true)-rate(b,true);
+  });
+}
+function allRanked(){return ranked(NAMES);}
+
+function listView(list,all){
+  var quiet=list.filter(function(n){return isQuiet(n)&&!S[n].fresh;}).length;
+  var h='<p class="line"><b>'+list.length+' responders.</b> '+quiet+' gone quiet.</p>';
+  h+='<div class="list"><table><tr><th>Rank</th><th>Responder</th><th>Handler</th><th>Status</th><th class="n">Pings per week<br>before &rarr; after 12 Aug</th><th class="n">Taken rate<br>since 12 Aug</th><th>Last taken ping</th><th></th></tr>';
+  ranked(list).forEach(function(n){
+    var d=R[n],q=isQuiet(n)&&!S[n].fresh;
+    h+='<tr class="item'+(q?' q':'')+'" onclick="openR('+qi(n)+')"><td class="rank">'+(all.indexOf(n)+1)+'</td><td><b>'+n+'</b><br><span class="soft">'+d.area+'</span></td><td>'+d.handler+'</td><td>'+flag(n)+'</td>'+
+    '<td class="n">'+f1(perWk(n,false))+' &rarr; <b>'+f1(perWk(n,true))+'</b></td><td class="n"><b>'+pct(takenRate(n))+'</b></td><td>'+d.lastTaken+'</td><td class="go">&rsaquo;</td></tr>';
+  });
+  return h+'</table></div>';
+}
+
+function detail(n){
+  var d=R[n],s=S[n],q=isQuiet(n),h='<button class="back" onclick="openR(null)">&larr; All responders</button><div style="height:16px"></div>';
+  if(s.fresh)h+='<div class="banner"><b>Fresh start given.</b> Dispatch will offer '+n+' callouts again. Watch the next 2 weeks: pings per week, misses, unfilled callouts.</div>';
+  h+='<div class="card '+(q&&!s.fresh?'quiet':'ok')+'"><h1>'+(q?n+' has gone quiet. '+pl(last(n))+' this week, was about '+usual(n)+'.':n+' is normal. '+pl(last(n))+' this week, was about '+usual(n)+'.')+'</h1>';
+  h+='<p class="meta">'+d.area+' &middot; Handler: '+d.handler+(d.tickets?' &middot; <b>'+d.tickets+' open ping tickets</b>':'')+'</p>';
+  if(q)h+='<button class="btn" onclick="fresh('+qi(n)+')"'+(s.fresh?' disabled':'')+'>Give a fresh start</button>'+(s.fresh?'':'<p class="soft">Whether this button exists, and who may use it, is a proposal.'+ex()+'</p>');
+  h+='</div>';
+  h+='<div class="card"><h2>Last 8 pings</h2>'+key()+'<table><tr><th>Callout</th><th>Date and time</th><th>Callout location</th><th>Result</th><th></th></tr>';
+  d.pings.forEach(function(p,i){
+    var miss=p[4]==="missed",l=s.legit[i];
+    var res=l?'<span class="tag t-no">Missed</span> <span class="soft">not counted</span>':tag(p[4]);
+    var act=miss&&!l?'<button class="btn sm" onclick="mark('+qi(n)+','+i+')">Mark as legitimate</button>':(l?'<button class="back" style="padding:3px 8px;font-size:13px" onclick="unmark('+qi(n)+','+i+')">Undo</button>':'');
+    h+='<tr><td>#'+p[0]+'</td><td>'+p[1]+', '+p[2]+'</td><td>'+p[3]+(p[3]===d.area?'':' <span class="soft">(outside '+d.area+')</span>')+'</td><td>'+res+'</td><td>'+act+'</td></tr>';
+  });
+  h+='</table><p class="count"><b>'+counted(n)+'</b> of the last 8 count as misses.</p></div>';
+  h+='<div class="card"><h2>Before and after 12 Aug</h2><table><tr><th></th><th class="n">Before</th><th class="n">From 12 Aug</th></tr>'+
+  '<tr><td>Pings per week</td><td class="n">'+f1(perWk(n,false))+'</td><td class="n">'+f1(perWk(n,true))+'</td></tr>'+
+  '<tr><td>Taken</td><td class="n c-taken">'+d.pre[1]+'</td><td class="n c-taken">'+d.post[1]+'</td></tr>'+
+  '<tr><td>Turned down</td><td class="n c-down">'+d.pre[2]+'</td><td class="n c-down">'+d.post[2]+'</td></tr>'+
+  '<tr><td>Missed</td><td class="n c-miss">'+d.pre[3]+'</td><td class="n c-miss">'+d.post[3]+'</td></tr>'+
+  '<tr><td>Missed rate</td><td class="n c-miss">'+pct(rate(n,false))+'</td><td class="n c-miss">'+pct(rate(n,true))+'</td></tr></table></div>';
+  h+='<div class="card"><h2>Week by week</h2><table><tr><th>Week</th><th class="n">Pings</th><th class="n">Taken</th><th class="n">Turned down</th><th class="n">Missed</th></tr>';
+  d.weeks.forEach(function(w,i){h+='<tr'+(i>=7?' class="after"':'')+'><td>'+w[0]+'</td><td class="n">'+w[1]+'</td><td class="n c-taken">'+w[2]+'</td><td class="n c-down">'+w[3]+'</td><td class="n c-miss">'+w[4]+'</td></tr>';});
+  h+='</table><p class="soft">Shaded rows are from 12 Aug, when 4.2 shipped. Weeks start Monday; the week of 10 Aug is split at 12 Aug.</p></div>';
+  return h;
+}
+
+function handlerTab(){
+  var h='<div class="console"><nav><div class="logo">Rook Dispatch</div><div class="dim">Callouts</div><div class="cur">My team</div><div class="dim">Routing overrides</div><div class="dim">Reports</div></nav><div class="body">';
+  if(!who){
+    h+='<h1>Sign in as</h1><p class="soft">Pick a handler.'+ex()+'</p><div style="height:12px"></div>';
+    Object.keys(HANDLERS).forEach(function(k){h+='<button class="pick" onclick="signIn('+qi(k)+')">'+k+'<small>'+HANDLERS[k].join(" and ")+'</small></button>';});
+  }else{
+    h+='<div class="who"><span class="soft">Signed in as <b>'+who+'</b></span><button onclick="switchH()">Switch handler</button></div>';
+    if(open)h+=detail(open);
+    else{
+      var list=scope==="team"?HANDLERS[who]:NAMES;
+      h+='<h1>Responders</h1><div class="toggle"><button class="'+(scope==="team"?'on':'')+'" onclick="setScope(\'team\')">My team</button><button class="'+(scope==="all"?'on':'')+'" onclick="setScope(\'all\')">All 16 responders</button></div>';
+      h+=listView(list,allRanked());
+      h+='<p class="soft">Click a responder to see their pings and where each callout was. Ranked by taken rate since 12 Aug (taken pings divided by all pings); ties go to the lower missed rate. "Gone quiet" means pings this week are under half the usual weekly number.'+ex()+' This week is the week of 31 Aug, the latest in the data.</p>';
+    }
+  }
+  return h+'</div></div>';
+}
+function phoneTab(){
+  var n=rpick,s=S[n],d=R[n],q=isQuiet(n);
+  var h='<div class="stage"><div class="seg">';
+  ["The Undertow","Farlight","Meteor Mite","The Gale"].forEach(function(x){h+='<button class="'+(x===n?'on':'')+'" onclick="setR('+qi(x)+')">'+x+'</button>';});
+  h+='</div><div class="phone"><div class="in"><h1>'+n+'</h1><p class="meta">'+d.area+' &middot; Handler: '+d.handler+'</p>';
+  h+='<div class="card"><b>You had '+pl(last(n))+' this week.</b><br>Before, it was about '+usual(n)+'.</div>';
+  if(s.fresh)h+='<div class="banner"><b>Your pings are back.</b> Your handler restarted them.</div>';
+  h+='<h2>My past pings</h2><table>';
+  d.pings.forEach(function(p,i){
+    var l=s.legit[i];
+    h+='<tr><td>'+p[1]+'<br>'+p[2]+'</td><td>'+p[3]+'</td><td>'+(l?'<span class="tag t-no">Missed</span><br><span class="soft">Your handler marked this as okay.</span>':tag(p[4]))+'</td></tr>';
+  });
+  h+='</table><h2>Coming up</h2><p class="soft">New pings arrive live when a callout is near you.</p>';
+  if(q&&!s.fresh){
+    h+='<div class="card" style="margin-top:14px">A missed ping used to count like saying no. This is changing.'+ex()+'</div>';
+    h+=s.asked?'<div class="banner">Your handler has been asked.</div>':'<button class="btn" onclick="ask('+qi(n)+')">Ask my handler to restart</button>';
+  }
+  h+='</div></div><p class="soft" style="margin-top:12px">Proposed screen, not designed.'+ex()+'</p></div>';
+  return h;
+}
+
+function render(){
+  document.getElementById("t1").className=tab===1?"on":"";
+  document.getElementById("t2").className=tab===2?"on":"";
+  document.getElementById("root").innerHTML=tab===1?handlerTab():phoneTab();
+}
+function setTab(t){tab=t;render();}
+function signIn(k){who=k;open=null;scope="all";render();}
+function switchH(){who=null;open=null;render();}
+function setScope(s){scope=s;render();}
+function openR(n){open=n;render();window.scrollTo(0,0);}
+function setR(n){rpick=n;render();}
+function mark(n,i){S[n].legit[i]=true;render();}
+function unmark(n,i){S[n].legit[i]=false;render();}
+function fresh(n){S[n].fresh=true;render();}
+function ask(n){S[n].asked=true;render();}
+render();
+</script>
+</body>
+</html>

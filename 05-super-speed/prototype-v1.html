@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rook Dispatch prototype: a way back for a quiet responder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f5f6f8;color:#1f2937;font-size:18px;line-height:1.5}
+  .label{background:#111827;color:#fff;font-size:13px;padding:6px 20px;letter-spacing:.3px}
+  .reset{float:right;background:none;border:1px solid #6b7280;color:#fff;border-radius:6px;padding:2px 10px;font-size:13px;cursor:pointer}
+  .bar{display:flex;gap:28px;flex-wrap:wrap;padding:12px 24px;background:#fff;border-bottom:1px solid #e5e7eb;align-items:center}
+  .grp{display:flex;align-items:center;gap:8px;font-size:14px;color:#6b7280}
+  .seg button{border:2px solid #d1d5db;padding:8px 16px;cursor:pointer;background:#fff;font-size:15px;color:#374151;margin-left:-2px}
+  .seg button:first-child{border-radius:8px 0 0 8px;margin-left:0}
+  .seg button:last-child{border-radius:0 8px 8px 0}
+  .seg button.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+  .seg button:disabled{color:#c4c7cc;cursor:not-allowed}
+  select{font-size:15px;padding:8px;border-radius:8px;border:2px solid #d1d5db}
+  .console{display:flex;min-height:620px}
+  nav{width:200px;background:#111827;color:#d1d5db;padding:20px 0;font-size:16px}
+  nav .logo{color:#fff;font-weight:bold;padding:0 20px 20px;font-size:18px}
+  nav div{padding:12px 20px}
+  nav div.cur{background:#1f2937;color:#fff;border-left:4px solid #60a5fa}
+  nav div.dim{color:#6b7280}
+  .body{flex:1;padding:32px 40px;max-width:940px}
+  h1{font-size:34px;line-height:1.2;margin:0 0 6px}
+  h2{font-size:26px;margin:0 0 16px}
+  .sub{font-size:20px;color:#374151;margin:0 0 24px}
+  .sub b{font-size:24px}
+  .card{background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .alert{border-left:8px solid #d97706}
+  .alert.ok{border-left-color:#16a34a}
+  .help{font-size:15px;color:#6b7280;margin:10px 0 0}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:14px;color:#6b7280;font-weight:normal;padding:8px}
+  td{padding:14px 8px;border-top:1px solid #e5e7eb;font-size:17px}
+  tr.click{cursor:pointer}tr.click:hover{background:#f9fafb}
+  .pill{display:inline-block;padding:4px 12px;border-radius:14px;font-size:15px;color:#fff;white-space:nowrap}
+  .taken{background:#15803d}.missed{background:#b91c1c}.down{background:#7c3aed}.quiet{background:#d97706}.fine{background:#15803d}.legit{background:#1d4ed8}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 12px;font-size:15px;color:#374151}
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px}
+  button.big{padding:16px 28px;border-radius:10px;border:0;background:#1d4ed8;color:#fff;cursor:pointer;font-size:20px;font-weight:bold}
+  button.big:hover{background:#1e40af}
+  button.big:disabled{background:#9ca3af;cursor:default}
+  button.mid{padding:10px 16px;border-radius:8px;border:0;background:#1d4ed8;color:#fff;cursor:pointer;font-size:16px;font-weight:bold}
+  button.undo{background:none;border:0;color:#1d4ed8;text-decoration:underline;cursor:pointer;font-size:15px}
+  a.back{color:#1d4ed8;cursor:pointer;font-size:16px}
+  .confirm{background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:16px;margin-top:12px}
+  .warn{background:#eff6ff;border-left:6px solid #1d4ed8;padding:10px 14px;font-size:15px;margin-top:14px;border-radius:6px}
+  .cost{background:#fef2f2;border-left:6px solid #b91c1c;padding:10px 14px;font-size:16px;margin:0 0 14px;border-radius:6px}
+  .ask{background:#ecfdf5;border-left:6px solid #15803d;padding:10px 14px;font-size:16px;margin-top:14px;border-radius:6px}
+  .chart{display:flex;align-items:flex-end;gap:6px;height:150px;margin-top:8px}
+  .chart .col{flex:1;text-align:center;font-size:11px;color:#6b7280}
+  .chart .b{background:#1d4ed8;border-radius:4px 4px 0 0;margin-bottom:4px}
+  .chart .b.low{background:#b91c1c}
+  .chart .b.tbd{background:#fff;border:2px dashed #9ca3af}
+  .stage{display:flex;flex-direction:column;align-items:center;padding:28px 16px}
+  .phone{width:320px;height:600px;border:10px solid #111827;border-radius:36px;background:#fff;overflow-y:auto;position:relative}
+  .phone .in{padding:26px 18px}
+  .phone .tag{font-size:11px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:8px}
+  .phone h1{font-size:24px}
+  .phone h3{font-size:24px;line-height:1.25;margin:0 0 14px}
+  .phone p{font-size:17px;color:#374151}
+  .phone table td{font-size:14px;padding:9px 4px}
+  .phone .card{padding:14px;box-shadow:none;border:1px solid #e5e7eb;margin-bottom:14px}
+  .phone button.big{width:100%;font-size:17px;padding:14px}
+  .phone button.mid{font-size:13px;padding:7px 10px}
+  .phone .row{border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}
+  .phone .chart{height:110px}
+  .center{justify-content:center;min-height:100%;display:flex;flex-direction:column;text-align:center}
+  @media (max-width:700px){nav{display:none}.body{padding:20px 16px}h1{font-size:26px}td,th{padding:10px 4px;font-size:15px}}
+</style>
+</head>
+<body>
+<div class="label">Prototype. Example data. <button class="reset" onclick="location.reload()">Reset demo</button></div>
+<div class="bar">
+  <div class="grp">View as <span class="seg"><button id="rH" onclick="setRole('handler')">Handler</button><button id="rR" onclick="setRole('responder')">Responder</button></span></div>
+  <div class="grp">On <span class="seg"><button id="dW" onclick="setDev('web')">Web</button><button id="dM" onclick="setDev('mobile')">Mobile</button></span></div>
+  <div class="grp" id="pickWrap">Responder <select id="pick" onchange="setPick(this.value)"></select></div>
+</div>
+<div id="stage"></div>
+
+<script>
+var N=["The Undertow","Vesper","Meteor Mite"];
+var R={
+ "The Undertow":{area:"Harborside",handler:"Desmond Okafor",hf:"Desmond",pre:"about 12",
+   weeks:[12,11,12,13,12,12,11,4,1,1],
+   pings:[[41394,"5 Sep, 15:17","missed"],[41235,"27 Aug, 23:18","missed"],[41130,"21 Aug, 16:45","missed"],[41079,"18 Aug, 16:18","missed"],[41059,"17 Aug, 19:07","taken"],[41054,"17 Aug, 14:10","turned down"],[41041,"16 Aug, 13:46","turned down"],[41011,"14 Aug, 10:22","missed"]]},
+ "Vesper":{area:"Old Town",handler:"Aunt Dot",hf:"Aunt Dot",pre:"about 14",
+   weeks:[14,13,15,14,13,14,12,5,2,1],
+   pings:[[41311,"1 Sep, 11:42","missed"],[41214,"26 Aug, 18:09","missed"],[41186,"24 Aug, 21:40","turned down"],[41165,"23 Aug, 20:15","missed"],[41155,"23 Aug, 05:34","turned down"],[41153,"23 Aug, 00:10","missed"],[41102,"19 Aug, 18:42","missed"],[41050,"17 Aug, 08:55","taken"]]},
+ "Meteor Mite":{area:"Eastgate",handler:"Kip",hf:"Kip",pre:"about 11",
+   weeks:[11,12,10,11,12,11,10,4,2,1],
+   pings:[[41393,"5 Sep, 15:06","missed"],[41254,"29 Aug, 09:15","missed"],[41232,"27 Aug, 20:03","turned down"],[41152,"22 Aug, 20:53","missed"],[41114,"20 Aug, 16:41","missed"],[41097,"19 Aug, 17:30","taken"],[41070,"18 Aug, 07:37","turned down"],[41040,"16 Aug, 11:16","missed"]]}
+};
+var WK=["29 Jun","6 Jul","13 Jul","20 Jul","27 Jul","3 Aug","10 Aug","17 Aug","24 Aug","31 Aug"];
+var S={};N.forEach(function(n){S[n]={legit:{},fresh:false,confirm:false,asked:false};});
+var role="handler",dev="web",cur=null,pick=N[0];
+
+function misses(n){var m=0;R[n].pings.forEach(function(p,i){if(p[2]==="missed"&&!S[n].legit[i])m++;});return m;}
+function pill(r){return r==="taken"?'<span class="pill taken">Taken</span>':r==="missed"?'<span class="pill missed">Missed</span>':'<span class="pill down">Turned down</span>';}
+function q(n){return N.indexOf(n);}
+
+function headline(n){
+  var s=S[n],d=R[n];
+  if(s.fresh)return '<div class="card alert ok"><h1>Fresh start given</h1><p class="sub">Dispatch will offer '+n+' callouts again.</p><p class="help">Watch the next 2 weeks: pings per week, misses, unfilled callouts.</p></div>';
+  var h='<div class="card alert"><h1>'+n+' has gone quiet</h1><p class="sub"><b>'+d.weeks[9]+' ping'+(d.weeks[9]==1?'':'s')+'</b> this week. Was '+d.pre+'.</p>';
+  if(s.asked)h+='<div class="ask"><b>'+n+' asked you to restart their pings.</b></div><div style="height:12px"></div>';
+  h+='<button class="big" onclick="askFresh('+q(n)+')">Give a fresh start</button>';
+  if(s.confirm)h+='<div class="confirm"><b>Restart '+n+"'s pings?</b><br><span class=\"help\">Dispatch will offer them callouts again. This is logged.</span><br><br><button class=\"big\" onclick=\"fresh("+q(n)+")\">Yes, restart</button> <button class=\"undo\" onclick=\"cancelFresh("+q(n)+")\">Cancel</button></div>";
+  h+='<p class="help">A fresh start clears the score so Dispatch offers them callouts again.</p><div class="warn">Works best together with a cheaper miss. On its own, about 4 misses would send them back to the bottom.</div></div>';
+  return h;
+}
+function chart(n){
+  var d=R[n],h='<div class="chart">';
+  d.weeks.forEach(function(v,i){h+='<div class="col"><div class="b'+(v<5?' low':'')+'" style="height:'+(v*8)+'px"></div>'+v+'<br>'+WK[i]+'</div>';});
+  if(S[n].fresh)["Next","+1 wk"].forEach(function(t){h+='<div class="col"><div class="b tbd" style="height:60px"></div>?<br>'+t+'</div>';});
+  return h+'</div>';
+}
+function pingTable(n){
+  var h='<table><tr><th>Callout</th><th>When</th><th>Result</th><th></th></tr>';
+  R[n].pings.forEach(function(p,i){
+    var l=S[n].legit[i],res=pill(p[2]);
+    if(l)res+=' <span class="pill legit">Legitimate, not counted</span>';
+    var act="";
+    if(p[2]==="missed")act=l?'<button class="undo" onclick="tog('+q(n)+','+i+')">Undo</button>':'<button class="mid" onclick="tog('+q(n)+','+i+')">Mark as legitimate</button>';
+    h+='<tr><td>#'+p[0]+'</td><td>'+p[1]+'</td><td>'+res+'</td><td>'+act+'</td></tr>';
+  });
+  return h+'</table>';
+}
+function legend(){return '<div class="legend"><span><span class="dot" style="background:#15803d"></span>Taken: said yes</span><span><span class="dot" style="background:#7c3aed"></span>Turned down: said no</span><span><span class="dot" style="background:#b91c1c"></span>Missed: ran out of time</span></div>';}
+function pingsCard(n){
+  return '<div class="card"><h2>Last 8 pings</h2><div class="cost">Today a miss counts against them exactly like saying no.</div>'+legend()+pingTable(n)+'<p class="help"><b>'+misses(n)+'</b> of the last 8 count as misses. Marking a miss as legitimate stops it counting against them.</p></div>';
+}
+function chartCard(n){return '<div class="card"><h2>Pings per week</h2>'+chart(n)+'<p class="help">Week starting. The week of 10 Aug includes two days before 4.2 (12 Aug).</p></div>';}
+function statusPill(n){return S[n].fresh?'<span class="pill fine">Fresh start given</span>':'<span class="pill quiet">Gone quiet</span>';}
+
+/* handler, web */
+function handlerWeb(){
+  var h='<div class="console"><nav><div class="logo">Rook Dispatch</div><div>Callouts</div><div class="cur">My responders</div><div class="dim">Routing overrides</div><div class="dim">Reports</div></nav><div class="body">';
+  if(!cur){
+    var quiet=N.filter(function(n){return !S[n].fresh;}).length;
+    h+='<h2>My responders</h2><div class="card alert'+(quiet?'':' ok')+'">'+(quiet?'<b>'+quiet+' responder'+(quiet>1?'s have':' has')+' gone quiet.</b><br><span class="help">Click a row to see why.</span>':'<b>No responders have gone quiet.</b>')+'</div>';
+    h+='<div class="card"><table><tr><th>Responder</th><th>Area</th><th>Handler</th><th>Pings this week</th><th>Status</th></tr>';
+    N.forEach(function(n){h+='<tr class="click" onclick="openR('+q(n)+')"><td><b>'+n+'</b></td><td>'+R[n].area+'</td><td>'+R[n].handler+'</td><td>'+R[n].weeks[9]+' (was '+R[n].pre+')</td><td>'+statusPill(n)+(S[n].asked&&!S[n].fresh?' <span class="pill legit">Asked for restart</span>':'')+'</td></tr>';});
+    h+='</table><p class="help">The demo shows three handlers\' responders together. A real handler would see only their own.</p></div>';
+  }else{
+    h+='<a class="back" onclick="openR(-1)">&larr; My responders</a><div style="height:12px"></div>'+headline(cur)+pingsCard(cur)+chartCard(cur);
+  }
+  return h+'</div></div>';
+}
+
+/* phone shell */
+function phone(inner){return '<div class="stage"><div class="phone"><div class="in">'+inner+'</div></div><p class="help">'+(role==="handler"?'Handler phone app: proposed. It is exploring for Q4 and unstaffed.':'Responder phone app: the proposed screen is not designed. Whether the app can show it is unknown (Sofia Marino).')+'</p></div>';}
+
+/* handler, mobile */
+function handlerMobile(){
+  var h='<span class="tag">Proposed, not designed</span>';
+  if(!cur){
+    h+='<h1>My responders</h1>';
+    N.forEach(function(n){h+='<div class="row" onclick="openR('+q(n)+')"><b>'+n+'</b> '+statusPill(n)+'<br><span class="help">'+R[n].weeks[9]+' ping this week. Was '+R[n].pre+'.'+(S[n].asked&&!S[n].fresh?' Asked for restart.':'')+'</span></div>';});
+  }else{
+    h+='<a class="back" onclick="openR(-1)">&larr; Back</a><div style="height:10px"></div>'+headline(cur)+'<div class="card"><b>Last 8 pings</b><div class="cost" style="font-size:13px">A miss counts like saying no.</div>'+pingTable(cur)+'<p class="help">'+misses(cur)+' of 8 count as misses.</p></div><div class="card"><b>Pings per week</b>'+chart(cur)+'</div>';
+  }
+  return phone(h);
+}
+
+/* responder, mobile */
+function responderMobile(){
+  var n=pick,s=S[n],d=R[n],h;
+  if(s.fresh)h='<div class="center"><h3>Your pings are back</h3><p>'+d.hf+' restarted them.</p></div>';
+  else h='<div class="center"><h3>Your pings have slowed down</h3><p>'+d.hf+' can restart them.</p>'+(s.asked?'<p style="color:#15803d;font-size:15px">Request sent to '+d.hf+'.</p>':'<button class="big" onclick="ask('+q(n)+')">Ask '+d.hf+' to restart</button>')+'</div>';
+  return phone(h).replace('<div class="in">','<div class="in" style="height:100%">');
+}
+
+function render(){
+  document.getElementById("rH").className=role==="handler"?"on":"";
+  document.getElementById("rR").className=role==="responder"?"on":"";
+  document.getElementById("dW").className=dev==="web"?"on":"";
+  document.getElementById("dM").className=dev==="mobile"?"on":"";
+  document.getElementById("dW").disabled=(role==="responder");
+  document.getElementById("pickWrap").style.display=role==="responder"?"flex":"none";
+  var st=document.getElementById("stage");
+  if(role==="handler")st.innerHTML=dev==="web"?handlerWeb():handlerMobile();
+  else st.innerHTML=responderMobile();
+}
+function setRole(r){role=r;if(r==="responder")dev="mobile";cur=null;render();}
+function setDev(d){dev=d;render();}
+function setPick(v){pick=v;render();}
+function openR(i){cur=i<0?null:N[i];render();}
+function tog(i,j){S[N[i]].legit[j]=!S[N[i]].legit[j];render();}
+function askFresh(i){S[N[i]].confirm=true;render();}
+function cancelFresh(i){S[N[i]].confirm=false;render();}
+function fresh(i){S[N[i]].fresh=true;S[N[i]].confirm=false;render();}
+function ask(i){S[N[i]].asked=true;render();}
+(function(){var s=document.getElementById("pick");N.forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});})();
+render();
+</script>
+</body>
+</html>
