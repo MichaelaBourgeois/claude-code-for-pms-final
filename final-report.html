@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A way back for a responder who has gone quiet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--navy:#0b1530;--navy2:#14224a;--blue:#1d6bff;--gold:#f5b301;--taken:#15803d;--down:#7c3aed;--miss:#b91c1c;--ink:#1f2937;--soft:#6b7280}
+  *{box-sizing:border-box}
+  html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--navy);color:#fff;font-size:26px;line-height:1.4}
+  section{min-height:100vh;scroll-snap-align:start;padding:56px 7vw 70px;display:flex;flex-direction:column;justify-content:center;position:relative;border-bottom:4px solid var(--gold)}
+  section:nth-of-type(even){background:var(--navy2)}
+  h1{font-size:60px;line-height:1.1;margin:0 0 18px;font-weight:800}
+  h2{font-size:44px;line-height:1.15;margin:0 0 22px;font-weight:800}
+  h2 .n{color:var(--gold)}
+  .gold{color:var(--gold)}
+  .soft{color:#b9c6ea;font-size:20px}
+  .tiny{font-size:16px;color:#9db0de}
+  .card{background:#fff;color:var(--ink);border-radius:20px;padding:26px 30px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .card .soft,.card .tiny{color:var(--soft)}
+  .grid{display:grid;gap:24px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .big{font-size:56px;font-weight:800;line-height:1}
+  .lab{font-size:18px;color:var(--soft);margin-top:6px}
+  .badge{display:inline-block;background:var(--gold);color:#1f2937;font-weight:800;border-radius:999px;padding:4px 16px;font-size:18px;letter-spacing:.5px;text-transform:uppercase}
+  .badge.est{background:#e5e7eb}
+  .tag{display:inline-block;color:#fff;border-radius:999px;padding:2px 12px;font-size:17px;white-space:nowrap}
+  .t-taken{background:var(--taken)}.t-down{background:var(--down)}.t-missed{background:var(--miss)}
+  .miss{color:var(--miss)}.down{color:var(--down)}.taken{color:var(--taken)}
+  pre.prompt{background:#0b1530;color:#e5ecff;border-left:6px solid var(--gold);border-radius:12px;padding:18px 22px;font-family:Arial,Helvetica,sans-serif;font-size:20px;white-space:pre-wrap;margin:0;max-height:46vh;overflow:auto}
+  pre.prompt.long{font-size:16px}
+  .num{position:absolute;top:18px;right:7vw;color:var(--gold);font-weight:800;font-size:18px}
+  .foot{position:absolute;bottom:16px;left:7vw;font-size:14px;color:#8da0d0}
+  .step{background:var(--gold);color:#1f2937;border-radius:16px;padding:16px 24px;font-weight:800;font-size:28px;margin-top:26px}
+  button.pill{background:var(--blue);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-size:20px;font-weight:bold;cursor:pointer}
+  button.pill.off{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+  .mock{background:#fff;color:var(--ink);border-radius:18px;padding:20px;font-size:17px}
+  .mock h3{margin:0 0 6px;font-size:24px}
+  .mock .banner{border-left:8px solid #b45309;background:#fffbeb;padding:12px 16px;border-radius:10px;margin-bottom:12px}
+  .mock .banner.ok{border-color:var(--taken);background:#ecfdf5}
+  .mock table{width:100%;border-collapse:collapse;font-size:16px}
+  .mock td{padding:6px 4px;border-top:1px solid #e5e7eb}
+  .mockbtn{display:block;width:100%;margin-top:12px;padding:12px;border-radius:10px;border:0;background:var(--blue);color:#fff;font-weight:bold;font-size:18px;cursor:pointer}
+  .mockbtn:disabled{background:#9ca3af;cursor:default}
+  .phone{width:280px;margin:0 auto;border:9px solid #08102a;border-radius:34px;background:#fff;color:var(--ink);padding:26px 20px;min-height:380px;text-align:center;display:flex;flex-direction:column;justify-content:center;box-shadow:0 0 0 3px var(--gold)}
+  .phone h4{font-size:24px;margin:0 0 10px}
+  .phone .hm{color:var(--gold);background:var(--navy);display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;border-radius:8px;padding:5px 10px;margin:0 auto 12px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .col h3{margin:0 0 10px;font-size:30px}
+  .col ul{margin:0;padding-left:22px;font-size:20px}
+  .col li{margin-bottom:8px}
+  .c-conf{border-top:10px solid var(--taken)}.c-like{border-top:10px solid var(--gold)}.c-unk{border-top:10px solid var(--miss)}
+  table.rv{width:100%;border-collapse:collapse;font-size:19px}
+  table.rv td{padding:8px 8px;border-top:1px solid #e5e7eb;vertical-align:top;color:var(--ink)}
+  .rate{display:inline-block;border-radius:999px;color:#fff;padding:1px 12px;font-size:16px;font-weight:bold}
+  .r-partly{background:#d97706}.r-pass{background:var(--taken)}.r-miss{background:var(--miss)}
+  .nav{position:fixed;bottom:14px;right:18px;z-index:9;color:#9db0de;font-size:14px;background:rgba(8,16,42,.8);padding:4px 10px;border-radius:8px}
+  @media (max-width:900px){body{font-size:20px}h1{font-size:38px}h2{font-size:30px}.g3,.g2,.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section>
+  <span class="badge">Rook Dispatch &middot; 4.2 review</span>
+  <h1 style="margin-top:18px">A way back for a responder who has gone quiet</h1>
+  <p style="font-size:30px;margin:6px 0">Michaela Bourgeois</p>
+  <p class="soft" style="font-size:24px">Product Manager, Rook Dispatch &middot; 16 October 2026</p>
+  <p class="tiny">Data covers 29 Jun to 7 Sep 2026. Rook Industries is a fictional teaching scenario.</p>
+</section>
+
+<!-- 2 -->
+<section>
+  <span class="num">2</span>
+  <h2>What I would <span class="gold">do about it</span></h2>
+  <div class="grid g3">
+    <div class="card"><div class="big gold" style="color:#b45309">1</div><b>A missed ping costs less than a turn-down.</b><div class="lab">Today both count the same.</div></div>
+    <div class="card"><div class="big" style="color:var(--blue)">2</div><b>The handler can give a fresh start.</b><div class="lab">A way back that does not depend on being pinged first.</div></div>
+    <div class="card"><div class="big" style="color:var(--miss)">3</div><b>A "gone quiet" alert tells the handler early.</b><div class="lab">Today they find out from silence, then tickets.</div></div>
+  </div>
+  <div class="step">First step: check the callouts with no recorded taker with Marcus Oyelaran.</div>
+  <p class="soft" style="margin-top:18px">Points 1 and 2 ship together: a fresh start on its own sends The Undertow back to the floor in about 4 misses. The wait stays at 60 seconds; restoring 90 is a separate decision, made on Ravi Menon's response-time data.</p>
+</section>
+
+<!-- 3 -->
+<section>
+  <span class="num">3</span>
+  <h2>The prototype <span class="gold">in action</span></h2>
+  <p class="soft" style="margin-top:-10px">The Undertow, before and after a fresh start. Click the button, or switch with the toggle.</p>
+  <div style="margin:8px 0 18px">
+    <button class="pill" id="bBefore" onclick="setState(false)">Before</button>
+    <button class="pill off" id="bAfter" onclick="setState(true)">After a fresh start</button>
+  </div>
+  <div class="grid g2" style="align-items:start">
+    <div class="mock" id="mockConsole"></div>
+    <div id="mockPhone"></div>
+  </div>
+  <p class="tiny" style="margin-top:14px">A re-creation of the handler console and responder phone, using The Undertow's real last 8 pings (14 Aug to 5 Sep). "After" shows the design only; I have no data on its effect. The full clickable version is <a style="color:var(--gold)" href="05-super-speed/prototype.html">05-super-speed/prototype.html</a>.</p>
+</section>
+
+<!-- 4 -->
+<section>
+  <span class="num">4</span>
+  <h2>What happened with 4.2, <span class="gold">in three layers</span></h2>
+  <div class="grid g3">
+    <div class="card">
+      <span class="badge" style="background:#16a34a;color:#fff">Confirmed</span>
+      <h3 style="margin:10px 0 6px;font-size:30px">1. The trigger</h3>
+      <p style="font-size:21px;margin:0 0 10px">The ping wait was cut from <b>90s to 60s</b> on 12 Aug.</p>
+      <p class="soft" style="margin:0">Gap after a miss: 91-93s until 8 Aug, 61-63s from 12 Aug.</p>
+      <svg viewBox="0 0 300 130" width="100%" style="margin-top:10px"><text x="10" y="14" font-size="13" fill="#6b7280">Missed pings, share of all pings</text><line x1="10" y1="100" x2="290" y2="100" stroke="#e5e7eb"/><rect x="40" y="91" width="60" height="9" fill="#1d6bff" rx="3"/><text x="45" y="86" font-size="14" font-weight="bold" fill="#1f2937">2.3%</text><text x="30" y="118" font-size="11" fill="#6b7280">before 12 Aug</text><rect x="180" y="30" width="60" height="70" fill="#b91c1c" rx="3"/><text x="185" y="25" font-size="14" font-weight="bold" fill="#1f2937">18.0%</text><text x="172" y="118" font-size="11" fill="#6b7280">since 12 Aug</text></svg>
+      <p class="tiny" style="margin:0">25 of 1,085 pings before 12 Aug; 110 of 611 since.</p>
+    </div>
+    <div class="card">
+      <span class="badge" style="background:#d97706;color:#fff">Likely</span>
+      <h3 style="margin:10px 0 6px;font-size:30px">2. The trap</h3>
+      <p style="font-size:21px;margin:0 0 10px">A miss counts like a decline: <b class="miss">-0.12</b>. A taken ping adds <b class="taken">+0.08</b>. The score never recovers on its own.</p>
+      <p class="soft" style="margin:0">Code: <code>history.py</code>, with a 2019 comment nobody answered.</p>
+      <p style="margin:12px 0 4px"><span class="badge est">Estimate</span></p>
+      <p class="soft" style="margin:0">My rebuilt scores: the four went into 12 Aug at 0.84-1.00 and hit 0 between 27 Aug and 5 Sep. Not the real scores.</p>
+    </div>
+    <div class="card">
+      <span class="badge" style="background:#b91c1c;color:#fff">Guess</span>
+      <h3 style="margin:10px 0 6px;font-size:30px">3. The blind spot</h3>
+      <p style="font-size:21px;margin:0 0 10px">Callouts with <b>no recorded taker</b>: <b>49 of 440</b> since 12 Aug, against <b>48 of 879</b> before (29 Jun to 11 Aug).</p>
+      <p class="soft" style="margin:0">23 of the 49 ended on a missed ping, 6 of them last pinged one of the four. A miss on a short list may end the chain with no retry. Not confirmed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section>
+  <span class="num">5</span>
+  <h2>The Undertow's story</h2>
+  <div class="grid" style="grid-template-columns:2.2fr 1fr;gap:28px;align-items:center">
+    <div class="card">
+      <b style="font-size:22px">Pings per week</b>
+      <svg viewBox="0 0 760 300" width="100%" id="chart"></svg>
+      <div class="tiny"><span class="taken">&#9632;</span> taken &nbsp; <span class="down">&#9632;</span> turned down &nbsp; <span class="miss">&#9632;</span> missed. Week starting; the week of 10 Aug is split at 12 Aug.</div>
+    </div>
+    <div>
+      <div class="big gold">12 &rarr; 1</div>
+      <p style="margin:6px 0 18px">pings a week: about 12 before 12 Aug, 1 in the week of 31 Aug</p>
+      <div class="big gold">17 Aug</div>
+      <p style="margin:6px 0 18px">their last taken ping (5 of 8 pings were missed on 12-16 Aug)</p>
+      <div class="big gold">11</div>
+      <p style="margin:6px 0 0">open ping tickets from handler Desmond Okafor, as of 7 Sep</p>
+      <p class="tiny">Counted by ticket subject, so approximate.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6a..6f -->
+<section>
+  <span class="num">6</span>
+  <span class="badge" style="width:max-content">Module 1 &middot; Origin Story</span>
+  <h2 style="margin-top:14px">Is it just <span class="gold">August being quiet?</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> Weekly acceptance held at 75-78% for six weeks before 12 Aug, then fell to 54% in the week of 12 Aug. Callouts also fell about 15% after 12 Aug (138 a week to 110-127), so some softness is real. There is no prior-year data, so "every year" cannot be tested.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt">Priya and the EM say the 4.2 ticket spike is an August seasonal dip. Using the wiki, the handover note, and the rook-database tables, what evidence supports that and what evidence goes against it? Quote the source for each point and tell me what data is missing.</pre>
+</section>
+
+<section>
+  <span class="num">7</span>
+  <span class="badge" style="width:max-content">Module 2 &middot; Super Hearing</span>
+  <h2 style="margin-top:14px">Did it hit <span class="gold">everyone the same?</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> After 12 Aug, Corporal Ashgrove and Halfmoon lost about a quarter of their pings, the four collapsed, and the other ten gained 19-49%. It hit some responders far harder than others.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt long">Prompt 3: Test the responders who were not on my list
+Corporal Ashgrove and Halfmoon filed quiet tickets but are not among the four hit responders. Using rook-database, show their weekly pings, taken, turned down, and missed counts, before and after 12 Aug. Do they fit the same pattern as Farlight and The Undertow? Also tell me whether anyone else not on my list shows the same pattern.</pre>
+</section>
+
+<section>
+  <span class="num">8</span>
+  <span class="badge" style="width:max-content">Module 3 &middot; Rewind</span>
+  <h2 style="margin-top:14px">Where did the <span class="gold">callouts go?</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> Since 12 Aug, 49 of 440 callouts had no recorded taker, against 48 of 879 before (29 Jun to 11 Aug). 23 of the 49 ended on a missed ping.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt">How many callouts since 12 Aug had no recorded taker, compared with before? For those, how many ended on a missed ping, and which responders were last pinged? Show me the rows.</pre>
+</section>
+
+<section>
+  <span class="num">9</span>
+  <span class="badge" style="width:max-content">Module 4 &middot; X-Ray Vision</span>
+  <h2 style="margin-top:14px">What does the code do <span class="gold">after a miss?</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> The routing code walks the whole ranked list and returns nothing at the end; the folder never says what happens next. Since 12 Aug, 40 of the 49 callouts with no recorded taker had only one ping.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt">A callout has only one available responder, and they miss the ping. What does the code do next? Where in the code does that happen? Does it explain why most callouts with no recorded taker have only one ping?</pre>
+</section>
+
+<section>
+  <span class="num">10</span>
+  <span class="badge" style="width:max-content">Module 5 &middot; Super Speed</span>
+  <h2 style="margin-top:14px">Is my plan <span class="gold">in the right order?</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> A fresh start alone sends The Undertow back to the floor in about 4 misses, so it ships with a cheaper miss. The third layer stays a guess: of the 23 callouts that ended on a missed ping since 12 Aug, only 6 last pinged one of the four.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt long">do you agree with this?
+
+I see three layers:
+
+1. The trigger: the wait went from 90 to 60 seconds, so more pings are missed. That is confirmed in the config and the data.
+2. The trap: a miss counts like a decline, and the score never recovers. A responder who falls behind rarely gets offered pings, so they cannot earn their way back. This is likely, but nobody has replayed the real scores.
+3. The blind spot: when a miss happens on a short list, the callout can end with no taker and no retry. This is the customer risk. It is the least understood and the most serious.
+
+My main worry is layer 3. Layers 1 and 2 hurt responders. Layer 3 may hurt customers.
+The solution
+I would do it in this order:
+
+1. Check the unfilled callouts first. Ask Marcus. If any went unfilled, that comes before everything else.
+2. Fresh start for the four. This is the quickest way to help The Undertow. Cheaper misses alone will not help someone already at the bottom.
+3. Separate misses from turn-downs. A turn-down is a choice. A miss may be a timing problem, so it should cost less.
+4. Let handlers flag a miss as legitimate. It is useful, but it adds work for handlers and depends on them noticing. I would keep it as a second step.
+5. Better logging. Weekly pings per responder against their own baseline would have caught this days earlier than the tickets did.
+
+What I would not do
+
+* Revert the wait quietly. We do not yet know if the wait is the whole cause, and Helen asked for something that works with the faster window.
+* Promise a fix before Wen Li replays the scores.
+
+What would change my mind: if the replay shows the four’s scores were not low, the score-loop idea is wrong, and the plan needs rethinking.</pre>
+</section>
+
+<section>
+  <span class="num">11</span>
+  <span class="badge" style="width:max-content">Module 6 &middot; Sidekicks</span>
+  <h2 style="margin-top:14px">Make the check <span class="gold">repeatable</span></h2>
+  <div class="card" style="margin-bottom:20px"><b>Finding.</b> My review habit is now a saved skill, <code>review-checklist</code>, with six checks. I tried a nine-check version and cut it back to the six I actually use.</div>
+  <p class="soft" style="margin:0 0 6px">The prompt I wrote:</p>
+  <pre class="prompt long">I want to save a habit as something I can reuse. When I review a brief before it goes any further, here is what I actually check for:
+- It names who owns it
+- It says how we will know it worked
+- The scope at the end matches the scope at the start
+- It explains the problem before it proposes a fix
+- Every claim is labeled confirmed, likely, or unknown, with a source
+- Numbers name their time window (for example "late August" vs "since 12 Aug")
+
+Turn that into a skill called review-checklist, so I can point it at any brief and get the same check every time, without me explaining it again. If one already exists, update it instead of making a new one. For each item, say Pass, Partly, or Missing, with a short reason and a quote from the brief. Then list the top 3 fixes. Do not invent facts or rewrite the brief unless I ask.</pre>
+</section>
+
+<!-- 7 -->
+<section>
+  <span class="num">12</span>
+  <h2>Confirmed, likely, <span class="gold">unknown</span></h2>
+  <div class="cols">
+    <div class="card col c-conf"><h3 class="taken">Confirmed</h3><ul>
+      <li>The wait went from 90s to 60s on 12 Aug (<code>config.py</code>; pings table timestamps).</li>
+      <li>Missed pings: 2.3% before 12 Aug (25 of 1,085), 18.0% since (110 of 611) (pings table).</li>
+      <li>The four went from about 49 pings a week combined to about 3 by the end of August (pings table).</li>
+      <li>A miss counts as a decline; only a taken ping raises a score (<code>history.py</code>).</li>
+    </ul></div>
+    <div class="card col c-like"><h3 style="color:#b45309">Likely</h3><ul>
+      <li>The score loop kept the four quiet. Estimate: my rebuilt scores reach 0 between 27 Aug and 5 Sep.</li>
+      <li>Short candidate lists mean a miss ends some callouts (49 of 440 since 12 Aug had no recorded taker). A guess, needs Marcus.</li>
+    </ul></div>
+    <div class="card col c-unk"><h3 class="miss">Unknown</h3><ul>
+      <li>Why the four missed their first pings. Decline habit, area, time of day and being busy are ruled out.</li>
+      <li>Whether any callout with no recorded taker went uncovered.</li>
+      <li>The real scores and travel times (Wen Li).</li>
+      <li>Whether proximity was meant to apply to decliners (asked 14 Aug, no answer).</li>
+      <li>What happened after 7 Sep: the data ends there.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section>
+  <span class="num">13</span>
+  <h2>How my skill keeps it <span class="gold">from happening again</span></h2>
+  <div class="grid g2" style="align-items:start">
+    <div class="card">
+      <b style="font-size:24px">review-checklist checks six things</b>
+      <ol style="font-size:21px;padding-left:24px;margin:10px 0 0">
+        <li>It names who owns it</li>
+        <li>It says how we will know it worked</li>
+        <li>The scope at the end matches the start</li>
+        <li>It explains the problem before the fix</li>
+        <li>Every claim is labeled, with a source</li>
+        <li>Numbers name their time window</li>
+      </ol>
+      <p class="tiny">Each is rated Pass, Partly or Missing, with a quote, then the top 3 fixes.</p>
+    </div>
+    <div class="card">
+      <b style="font-size:24px">What it flagged on my brief</b> <span class="badge est">Run by hand, 16 Oct</span>
+      <p class="tiny" style="margin:6px 0 8px">I applied the skill's rules to <code>05-super-speed/brief.md</code> myself. The skill has not been run on it automatically.</p>
+      <table class="rv">
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Owner:</b> "From: PM, Rook Dispatch" has no name; build is owned by "Marcus's team".</td></tr>
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Success:</b> "Misses fall toward the pre-4.2 level" has no date.</td></tr>
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Scope:</b> the phone-app line at the start is not in the five-step approach.</td></tr>
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Problem first:</b> "Why it happens" comes after "Proposed approach".</td></tr>
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Sources:</b> labels are there; "2.3% before 12 Aug (25 of 1,085)" names no source.</td></tr>
+        <tr><td><span class="rate r-partly">Partly</span></td><td><b>Windows:</b> "about 49 pings a week combined to about 3" has none.</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="step" style="font-size:22px">Top 3 fixes: name the owner and add dates to the success targets; move "Why it happens" before the approach and name each source; add a window to every number.</div>
+</section>
+
+<!-- 9 -->
+<section>
+  <span class="num">14</span>
+  <h2>What I <span class="gold">learned</span></h2>
+  <div class="grid" style="gap:22px">
+    <div class="card"><b>Ask for the rows, not just the number.</b> <span class="soft">(Module 3)</span></div>
+    <div class="card"><b>When two piles of feedback disagree, let the ping data break the tie.</b> <span class="soft">(Module 2)</span></div>
+    <div class="card"><b>A fix has to ship with what makes it safe.</b> <span class="soft">(Module 5: a fresh start alone sends them back to the floor.)</span></div>
+  </div>
+  <p class="tiny" style="margin-top:22px">Fictional teaching scenario: Rook Industries is not a real company. All figures are from the course data, 29 Jun to 7 Sep 2026.</p>
+</section>
+
+<div class="nav">Arrow keys or space to move</div>
+
+<script>
+/* The Undertow, real data from the pings table */
+var weeks=[["29 Jun",9,3,0],["6 Jul",9,2,0],["13 Jul",9,2,1],["20 Jul",10,3,0],["27 Jul",10,2,0],["3 Aug",9,3,0],["10-11 Aug",2,1,0],["12-16 Aug",2,1,5],["17 Aug",1,1,2],["24 Aug",0,0,1],["31 Aug",0,0,1]];
+(function(){
+  var W=760,H=300,left=34,top=20,base=H-50,step=(W-left)/weeks.length,bw=Math.min(46,step-12),max=14,svg="";
+  [0,5,10].forEach(function(v){var y=base-v/max*(base-top);svg+='<line x1="'+left+'" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="#e5e7eb"/><text x="'+(left-6)+'" y="'+(y+4)+'" font-size="12" fill="#6b7280" text-anchor="end">'+v+'</text>';});
+  weeks.forEach(function(w,i){
+    var x=left+i*step+(step-bw)/2,y=base,parts=[[w[1],"#15803d"],[w[2],"#7c3aed"],[w[3],"#b91c1c"]],tot=w[1]+w[2]+w[3];
+    parts.forEach(function(p){var h=p[0]/max*(base-top);if(h>0){y-=h;svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" fill="'+p[1]+'"/>';}});
+    svg+='<text x="'+(x+bw/2)+'" y="'+(y-5)+'" font-size="14" font-weight="bold" fill="#1f2937" text-anchor="middle">'+tot+'</text>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(base+16)+'" font-size="11" fill="#6b7280" text-anchor="middle">'+w[0]+'</text>';
+  });
+  var mx=left+7*step;
+  svg+='<line x1="'+mx+'" y1="'+(top-8)+'" x2="'+mx+'" y2="'+base+'" stroke="#1d6bff" stroke-width="2" stroke-dasharray="5,4"/><text x="'+(mx+6)+'" y="'+(top)+'" font-size="13" fill="#1d6bff" font-weight="bold">12 Aug: 4.2 ships</text>';
+  document.getElementById("chart").innerHTML=svg;
+})();
+
+/* Slide 3: mock of the prototype */
+var pings=[[41394,"5 Sep, 15:17","Harborside","missed"],[41235,"27 Aug, 23:18","Harborside","missed"],[41130,"21 Aug, 16:45","Harborside","missed"],[41079,"18 Aug, 16:18","Harborside","missed"],[41059,"17 Aug, 19:07","Harborside","taken"],[41054,"17 Aug, 14:10","Greenway","turned down"],[41041,"16 Aug, 13:46","Greenway","turned down"],[41011,"14 Aug, 10:22","Riverside","missed"]];
+var after=false;
+function tag(r){return r==="taken"?'<span class="tag t-taken">Taken</span>':r==="missed"?'<span class="tag t-missed">Missed</span>':'<span class="tag t-down">Turned down</span>';}
+function draw(){
+  var h='<h3>Handler console &middot; Desmond Okafor</h3>';
+  if(after)h+='<div class="banner ok"><b>Fresh start given.</b> Dispatch will offer The Undertow callouts again. Watch the next 2 weeks: pings per week, misses, callouts with no recorded taker.</div>';
+  else h+='<div class="banner"><b>The Undertow has gone quiet.</b> 1 ping in the week of 31 Aug, was about 12.</div>';
+  h+='<table>';
+  pings.forEach(function(p){h+='<tr><td>#'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td>'+tag(p[3])+'</td></tr>';});
+  h+='</table>';
+  h+='<button class="mockbtn" onclick="setState(true)"'+(after?' disabled':'')+'>Give a fresh start</button>';
+  document.getElementById("mockConsole").innerHTML=h;
+  var p='<div class="phone"><div><span class="hm">Hero Mode</span></div><b>The Undertow</b><div class="soft" style="font-size:15px;margin-bottom:12px">Harborside</div>';
+  if(after)p+='<h4>Your pings are back</h4><p style="margin:0">Your handler restarted them.</p>';
+  else p+='<h4>Your pings have slowed down</h4><p style="margin:0 0 14px">Some ran out of time before you could answer.</p><button class="mockbtn" style="margin-top:0" onclick="this.disabled=true;this.textContent=\'Your handler has been asked\'">Ask my handler to restart</button>';
+  p+='</div>';
+  document.getElementById("mockPhone").innerHTML=p;
+  document.getElementById("bBefore").className="pill"+(after?" off":"");
+  document.getElementById("bAfter").className="pill"+(after?"":" off");
+}
+function setState(a){after=a;draw();}
+draw();
+
+document.addEventListener("keydown",function(e){
+  var s=[].slice.call(document.querySelectorAll("section")),y=window.scrollY+5,i=0;
+  s.forEach(function(el,k){if(el.offsetTop<=y)i=k;});
+  if(e.key==="ArrowDown"||e.key==="ArrowRight"||e.key==="PageDown"){e.preventDefault();if(s[i+1])s[i+1].scrollIntoView();}
+  if(e.key==="ArrowUp"||e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();if(s[i-1])s[i-1].scrollIntoView();}
+});
+</script>
+</body>
+</html>
