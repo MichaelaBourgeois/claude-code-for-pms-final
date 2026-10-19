@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>A way back for a responder who has gone quiet</title>
+<title>What 4.2 did to responders, and the way back</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{--navy:#0b1530;--navy2:#14224a;--blue:#1d6bff;--gold:#f5b301;--taken:#15803d;--down:#7c3aed;--miss:#b91c1c;--ink:#1f2937;--soft:#6b7280}
@@ -65,44 +65,15 @@
 <!-- 1 -->
 <section>
   <span class="badge">Rook Dispatch &middot; 4.2 review</span>
-  <h1 style="margin-top:18px">A way back for a responder who has gone quiet</h1>
+  <h1 style="margin-top:18px">What 4.2 did to responders, and the way back</h1>
   <p style="font-size:30px;margin:6px 0">Michaela Bourgeois</p>
-  <p class="soft" style="font-size:24px">Product Manager, Rook Dispatch &middot; 16 October 2026</p>
+  <p class="soft" style="font-size:24px">Product Manager, Rook Dispatch &middot; 18 October 2026</p>
+  <p style="font-size:26px;margin:18px 0 6px">Find out what 4.2 did, prove it from more than one source, and build the way back.</p>
   <p class="tiny">Data covers 29 Jun to 7 Sep 2026. Rook Industries is a fictional teaching scenario.</p>
 </section>
 
-<!-- 2 -->
 <section>
   <span class="num">2</span>
-  <h2>What I would <span class="gold">do about it</span></h2>
-  <div class="grid g3">
-    <div class="card"><div class="big gold" style="color:#b45309">1</div><b>A missed ping costs less than a turn-down.</b><div class="lab">Today both count the same.</div></div>
-    <div class="card"><div class="big" style="color:var(--blue)">2</div><b>The handler can give a fresh start.</b><div class="lab">A way back that does not depend on being pinged first.</div></div>
-    <div class="card"><div class="big" style="color:var(--miss)">3</div><b>A "gone quiet" alert tells the handler early.</b><div class="lab">Today they find out from silence, then tickets.</div></div>
-  </div>
-  <div class="step">First step: check the callouts with no recorded taker with Marcus Oyelaran.</div>
-  <p class="soft" style="margin-top:18px">Points 1 and 2 ship together: a fresh start on its own sends The Undertow back to the floor in about 4 misses. The wait stays at 60 seconds; restoring 90 is a separate decision, made on Ravi Menon's response-time data.</p>
-</section>
-
-<!-- 3 -->
-<section>
-  <span class="num">3</span>
-  <h2>The prototype <span class="gold">in action</span></h2>
-  <p class="soft" style="margin-top:-10px">The Undertow, before and after a fresh start. Click the button, or switch with the toggle.</p>
-  <div style="margin:8px 0 18px">
-    <button class="pill" id="bBefore" onclick="setState(false)">Before</button>
-    <button class="pill off" id="bAfter" onclick="setState(true)">After a fresh start</button>
-  </div>
-  <div class="grid g2" style="align-items:start">
-    <div class="mock" id="mockConsole"></div>
-    <div id="mockPhone"></div>
-  </div>
-  <p class="tiny" style="margin-top:14px">A re-creation of the handler console and responder phone, using The Undertow's real last 8 pings (14 Aug to 5 Sep). "After" shows the design only; I have no data on its effect. The full clickable version is <a style="color:var(--gold)" href="05-super-speed/prototype.html">05-super-speed/prototype.html</a>.</p>
-</section>
-
-<!-- 4 -->
-<section>
-  <span class="num">4</span>
   <h2>What happened with 4.2, <span class="gold">in three layers</span></h2>
   <div class="grid g3">
     <div class="card">
@@ -130,9 +101,8 @@
   </div>
 </section>
 
-<!-- 5 -->
 <section>
-  <span class="num">5</span>
+  <span class="num">3</span>
   <h2>The Undertow's story</h2>
   <div class="grid" style="grid-template-columns:2.2fr 1fr;gap:28px;align-items:center">
     <div class="card">
@@ -152,9 +122,20 @@
   </div>
 </section>
 
-<!-- 6a..6f -->
 <section>
-  <span class="num">6</span>
+  <span class="num">4</span>
+  <h2>What I would <span class="gold">do about it</span></h2>
+  <div class="grid g3">
+    <div class="card"><div class="big gold" style="color:#b45309">1</div><b>A missed ping costs less than a turn-down.</b><div class="lab">Today both count the same.</div></div>
+    <div class="card"><div class="big" style="color:var(--blue)">2</div><b>The handler can give a fresh start.</b><div class="lab">A way back that does not depend on being pinged first.</div></div>
+    <div class="card"><div class="big" style="color:var(--miss)">3</div><b>A "gone quiet" alert tells the handler early.</b><div class="lab">Today they find out from silence, then tickets.</div></div>
+  </div>
+  <div class="step">First step: check the callouts with no recorded taker with Marcus Oyelaran.</div>
+  <p class="soft" style="margin-top:18px">Points 1 and 2 ship together: a fresh start on its own sends The Undertow back to the floor in about 4 misses. The wait stays at 60 seconds; restoring 90 is a separate decision, made on Ravi Menon's response-time data.</p>
+</section>
+
+<section>
+  <span class="num">5</span>
   <span class="badge" style="width:max-content">Module 1 &middot; Origin Story</span>
   <h2 style="margin-top:14px">Is it just <span class="gold">August being quiet?</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> Weekly acceptance held at 75-78% for six weeks before 12 Aug, then fell to 54% in the week of 12 Aug. Callouts also fell about 15% after 12 Aug (138 a week to 110-127), so some softness is real. There is no prior-year data, so "every year" cannot be tested.</div>
@@ -163,7 +144,7 @@
 </section>
 
 <section>
-  <span class="num">7</span>
+  <span class="num">6</span>
   <span class="badge" style="width:max-content">Module 2 &middot; Super Hearing</span>
   <h2 style="margin-top:14px">Did it hit <span class="gold">everyone the same?</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> After 12 Aug, Corporal Ashgrove and Halfmoon lost about a quarter of their pings, the four collapsed, and the other ten gained 19-49%. It hit some responders far harder than others.</div>
@@ -173,7 +154,7 @@ Corporal Ashgrove and Halfmoon filed quiet tickets but are not among the four hi
 </section>
 
 <section>
-  <span class="num">8</span>
+  <span class="num">7</span>
   <span class="badge" style="width:max-content">Module 3 &middot; Rewind</span>
   <h2 style="margin-top:14px">Where did the <span class="gold">callouts go?</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> Since 12 Aug, 49 of 440 callouts had no recorded taker, against 48 of 879 before (29 Jun to 11 Aug). 23 of the 49 ended on a missed ping.</div>
@@ -182,7 +163,7 @@ Corporal Ashgrove and Halfmoon filed quiet tickets but are not among the four hi
 </section>
 
 <section>
-  <span class="num">9</span>
+  <span class="num">8</span>
   <span class="badge" style="width:max-content">Module 4 &middot; X-Ray Vision</span>
   <h2 style="margin-top:14px">What does the code do <span class="gold">after a miss?</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> The routing code walks the whole ranked list and returns nothing at the end; the folder never says what happens next. Since 12 Aug, 40 of the 49 callouts with no recorded taker had only one ping.</div>
@@ -191,7 +172,7 @@ Corporal Ashgrove and Halfmoon filed quiet tickets but are not among the four hi
 </section>
 
 <section>
-  <span class="num">10</span>
+  <span class="num">9</span>
   <span class="badge" style="width:max-content">Module 5 &middot; Super Speed</span>
   <h2 style="margin-top:14px">Is my plan <span class="gold">in the right order?</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> A fresh start alone sends The Undertow back to the floor in about 4 misses, so it ships with a cheaper miss. The third layer stays a guess: of the 23 callouts that ended on a missed ping since 12 Aug, only 6 last pinged one of the four.</div>
@@ -223,7 +204,7 @@ What would change my mind: if the replay shows the four’s scores were not low,
 </section>
 
 <section>
-  <span class="num">11</span>
+  <span class="num">10</span>
   <span class="badge" style="width:max-content">Module 6 &middot; Sidekicks</span>
   <h2 style="margin-top:14px">Make the check <span class="gold">repeatable</span></h2>
   <div class="card" style="margin-bottom:20px"><b>Finding.</b> My review habit is now a saved skill, <code>review-checklist</code>, with six checks. I tried a nine-check version and cut it back to the six I actually use.</div>
@@ -239,7 +220,21 @@ What would change my mind: if the replay shows the four’s scores were not low,
 Turn that into a skill called review-checklist, so I can point it at any brief and get the same check every time, without me explaining it again. If one already exists, update it instead of making a new one. For each item, say Pass, Partly, or Missing, with a short reason and a quote from the brief. Then list the top 3 fixes. Do not invent facts or rewrite the brief unless I ask.</pre>
 </section>
 
-<!-- 7 -->
+<section>
+  <span class="num">11</span>
+  <h2>The prototype <span class="gold">in action</span></h2>
+  <p class="soft" style="margin-top:-10px">The Undertow, before and after a fresh start. Click the button, or switch with the toggle.</p>
+  <div style="margin:8px 0 18px">
+    <button class="pill" id="bBefore" onclick="setState(false)">Before</button>
+    <button class="pill off" id="bAfter" onclick="setState(true)">After a fresh start</button>
+  </div>
+  <div class="grid g2" style="align-items:start">
+    <div class="mock" id="mockConsole"></div>
+    <div id="mockPhone"></div>
+  </div>
+  <p class="tiny" style="margin-top:14px">A re-creation of the handler console and responder phone, using The Undertow's real last 8 pings (14 Aug to 5 Sep). "After" shows the design only; I have no data on its effect. The full clickable version is <a style="color:var(--gold)" href="05-super-speed/prototype.html">05-super-speed/prototype.html</a>.</p>
+</section>
+
 <section>
   <span class="num">12</span>
   <h2>Confirmed, likely, <span class="gold">unknown</span></h2>
@@ -264,7 +259,6 @@ Turn that into a skill called review-checklist, so I can point it at any brief a
   </div>
 </section>
 
-<!-- 8 -->
 <section>
   <span class="num">13</span>
   <h2>How my skill keeps it <span class="gold">from happening again</span></h2>
@@ -297,7 +291,6 @@ Turn that into a skill called review-checklist, so I can point it at any brief a
   <div class="step" style="font-size:22px">Top 3 fixes: name the owner and add dates to the success targets; move "Why it happens" before the approach and name each source; add a window to every number.</div>
 </section>
 
-<!-- 9 -->
 <section>
   <span class="num">14</span>
   <h2>What I <span class="gold">learned</span></h2>
